@@ -1,0 +1,5 @@
+title: FinanceFlow
+description: A modern, offline-first personal finance tracker with Google Identity integration.
+theme: jekyll-theme-cayman
+google_analytics: # Add your ID here if you have one
+show_downloads: true

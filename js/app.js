@@ -27,9 +27,12 @@ function decodeJwt(token) {
 }
 
 const init = async () => {
+    const isClientPlaceholder = CLIENT_ID.includes('YOUR_GOOGLE_CLIENT_ID');
+
     // Developer Warning for placeholder Client ID
-    if (CLIENT_ID.includes('YOUR_GOOGLE_CLIENT_ID')) {
-        console.error("GOOGLE CONFIGURATION ERROR: You are using a placeholder Client ID. The Drive integration and Google Sign-In will not work until you replace 'YOUR_GOOGLE_CLIENT_ID' in index.html and js/app.js with a valid ID from the Google Cloud Console.");
+    if (isClientPlaceholder) {
+        console.error("GOOGLE CONFIGURATION ERROR: You are using a placeholder Client ID.");
+        console.info("Please follow the instructions in README.md to set up your own Google Cloud Project.");
     }
 
     try {
@@ -163,7 +166,17 @@ const init = async () => {
 
         const driveBtn = document.getElementById('drive-btn');
         if (driveBtn) {
+            if (isClientPlaceholder) {
+                driveBtn.title = "Google Drive setup required (see README)";
+                // We don't disable it completely so user can see the alert if they click
+            }
+
             driveBtn.onclick = async () => {
+                if (isClientPlaceholder) {
+                    alert("Google Drive backup requires configuration. Please update your Google Client ID in the code. See README.md for instructions.");
+                    return;
+                }
+
                 const expenses = await db.getAllExpenses();
                 if (expenses.length === 0) {
                     alert("No data to save.");

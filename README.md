@@ -24,8 +24,10 @@ Simply open `index.html` in a modern browser or host it on any static file serve
 To enable Google Sign-In and Google Drive backup:
 1.  Go to the [Google Cloud Console](https://console.cloud.google.com/).
 2.  Create a new project.
-3.  Navigate to **APIs & Services > Credentials**.
-4.  Click **Create Credentials > OAuth client ID**.
+3.  Navigate to **APIs & Services > Library**.
+4.  Search for and **Enable** the **Google Drive API**.
+5.  Navigate to **APIs & Services > Credentials**.
+6.  Click **Create Credentials > OAuth client ID**.
 5.  Select **Web application** as the application type.
 6.  Add your domain (e.g., `https://yourusername.github.io`) to **Authorized JavaScript origins**.
 7.  Copy the generated **Client ID**.

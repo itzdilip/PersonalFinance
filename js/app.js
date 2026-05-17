@@ -27,6 +27,11 @@ function decodeJwt(token) {
 }
 
 const init = async () => {
+    // Developer Warning for placeholder Client ID
+    if (CLIENT_ID.includes('YOUR_GOOGLE_CLIENT_ID')) {
+        console.error("GOOGLE CONFIGURATION ERROR: You are using a placeholder Client ID. The Drive integration and Google Sign-In will not work until you replace 'YOUR_GOOGLE_CLIENT_ID' in index.html and js/app.js with a valid ID from the Google Cloud Console.");
+    }
+
     try {
         console.log("Starting App Initialization...");
         

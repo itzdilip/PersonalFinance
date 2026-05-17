@@ -6,9 +6,9 @@ const ASSETS = [
     './js/app.js',
     './js/db.js',
     './js/ui.js',
-    './js/csv.js',
+    './js/drive.js',
     './manifest.json',
-    './assets/icon-192.png',
+    './assets/logo.svg',
     'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap',
     'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css'
 ];
@@ -37,8 +37,8 @@ self.addEventListener('activate', (event) => {
 
 // Fetch Event
 self.addEventListener('fetch', (event) => {
-    // Skip caching for Google Auth scripts to avoid interference
-    if (event.request.url.includes('accounts.google.com')) {
+    // Skip caching for Google Auth/API scripts to avoid interference
+    if (event.request.url.includes('accounts.google.com') || event.request.url.includes('apis.google.com')) {
         return;
     }
 

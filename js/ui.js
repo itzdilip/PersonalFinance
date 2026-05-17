@@ -65,24 +65,36 @@ export const updateUserInfo = (user) => {
     const authOptions = document.getElementById('auth-options');
     const userNameEl = document.getElementById('user-name');
     const userAvatarEl = document.getElementById('user-avatar');
+    const userIconEl = document.getElementById('user-icon');
     const welcomeMsgEl = document.getElementById('welcome-msg');
     const logoutBtn = document.getElementById('logout-btn');
     const editBtn = document.getElementById('edit-name-btn');
 
     if (userProfile) userProfile.classList.remove('hidden');
 
+    const showAvatar = (src) => {
+        if (src) {
+            userAvatarEl.src = src;
+            userAvatarEl.classList.remove('hidden');
+            userIconEl.classList.add('hidden');
+        } else {
+            userAvatarEl.classList.add('hidden');
+            userIconEl.classList.remove('hidden');
+        }
+    };
+
     if (user && user.isGoogle) {
         if (authOptions) authOptions.classList.add('hidden');
         if (logoutBtn) logoutBtn.classList.remove('hidden');
         if (editBtn) editBtn.classList.add('hidden');
         if (userNameEl) userNameEl.textContent = user.name;
-        if (userAvatarEl) userAvatarEl.src = user.picture;
+        showAvatar(user.picture);
         if (welcomeMsgEl) welcomeMsgEl.textContent = `Hello, ${user.given_name || user.name}!`;
     } else {
         if (authOptions) authOptions.classList.remove('hidden');
         if (logoutBtn) logoutBtn.classList.add('hidden');
         if (editBtn) editBtn.classList.remove('hidden');
-        if (userAvatarEl) userAvatarEl.src = 'assets/icon-192.png';
+        showAvatar(null); // Use FontAwesome icon for guest
         
         const localName = user ? user.name : 'Guest';
         if (userNameEl) userNameEl.textContent = localName;

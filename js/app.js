@@ -1,6 +1,9 @@
 import * as db from './db.js';
 import * as ui from './ui.js';
 import * as csv from './csv.js';
+import * as drive from './drive.js';
+
+const CLIENT_ID = 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com';
 
 const FALLBACK_CATEGORIES = [
     'Food & Dining', 'Transport', 'Rent', 'Bills & Utilities', 
@@ -48,6 +51,17 @@ const init = async () => {
         }
         
         ui.populateCategories(categories);
+
+        // 2.5. Init Google Drive API
+        if (navigator.onLine) {
+            try {
+                await drive.initGapi();
+                await drive.initGis(CLIENT_ID);
+                console.log("Google Drive API Initialized");
+            } catch (e) {
+                console.warn("Google Drive API Init failed:", e);
+            }
+        }
 
         // 3. User & Session Management
         const loadUser = () => {
@@ -139,6 +153,36 @@ const init = async () => {
             exportBtn.onclick = async () => {
                 const expenses = await db.getAllExpenses();
                 csv.exportToCSV(expenses, currentUser.name);
+            };
+        }
+
+        const driveBtn = document.getElementById('drive-btn');
+        if (driveBtn) {
+            driveBtn.onclick = async () => {
+                const expenses = await db.getAllExpenses();
+                if (expenses.length === 0) {
+                    alert("No data to save.");
+                    return;
+                }
+
+                try {
+                    driveBtn.disabled = true;
+                    driveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+                    
+                    const csvContent = csv.generateCSV(expenses);
+                    const safeUserName = currentUser.name.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+                    const dateStr = new Date().toISOString().split('T')[0];
+                    const fileName = `${safeUserName}_expenses_${dateStr}.csv`;
+
+                    const fileId = await drive.uploadToDrive(csvContent, fileName);
+                    alert(`Successfully saved to Google Drive! (File ID: ${fileId})`);
+                } catch (error) {
+                    console.error("Drive upload failed:", error);
+                    alert("Failed to save to Google Drive: " + error.message);
+                } finally {
+                    driveBtn.disabled = false;
+                    driveBtn.innerHTML = '<i class="fab fa-google-drive"></i> Save to Drive';
+                }
             };
         }
 

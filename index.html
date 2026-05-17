@@ -11,7 +11,8 @@
     <link rel="stylesheet" href="css/style.css">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#4f46e5">
-    <link rel="apple-touch-icon" href="assets/icon-192.png">
+    <link rel="apple-touch-icon" href="assets/logo.svg">
+    <link rel="icon" type="image/svg+xml" href="assets/logo.svg">
     <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
@@ -22,7 +23,10 @@
                 <span>FinanceFlow</span>
             </div>
             <div id="user-profile" class="user-profile hidden">
-                <img id="user-avatar" src="assets/icon-192.png" alt="User Avatar">
+                <div id="user-avatar-container">
+                    <img id="user-avatar" src="" alt="User Avatar" class="hidden">
+                    <i id="user-icon" class="fas fa-user-circle"></i>
+                </div>
                 <span id="user-name">Guest</span>
                 <button id="edit-name-btn" title="Edit Name"><i class="fas fa-edit"></i></button>
                 <button id="logout-btn" title="Logout" class="hidden"><i class="fas fa-sign-out-alt"></i></button>
@@ -47,6 +51,7 @@
 
     <header class="app-header">
         <div class="header-content">
+            <img src="assets/logo.svg" alt="FinanceFlow Logo" class="header-logo">
             <h1 id="welcome-msg">Welcome Back!</h1>
             <p>Keep track of your spending effortlessly.</p>
         </div>
@@ -117,6 +122,9 @@
                 <div class="btn-group">
                     <button id="export-btn" class="btn-secondary">
                         <i class="fas fa-file-export"></i> Export CSV
+                    </button>
+                    <button id="drive-btn" class="btn-secondary">
+                        <i class="fab fa-google-drive"></i> Save to Drive
                     </button>
                     <label for="import-csv" class="btn-secondary">
                         <i class="fas fa-file-import"></i> Import CSV

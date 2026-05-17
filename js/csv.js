@@ -1,9 +1,4 @@
-export const exportToCSV = (expenses, userName = 'Guest') => {
-    if (!expenses || expenses.length === 0) {
-        alert("No data to export.");
-        return;
-    }
-
+export const generateCSV = (expenses) => {
     const headers = ['Date', 'Amount', 'Category', 'Description'];
     const rows = expenses.map(e => [
         e.date,
@@ -12,7 +7,16 @@ export const exportToCSV = (expenses, userName = 'Guest') => {
         `"${e.description || ''}"`
     ]);
 
-    const csvContent = [headers, ...rows].map(e => e.join(",")).join("\n");
+    return [headers, ...rows].map(e => e.join(",")).join("\n");
+};
+
+export const exportToCSV = (expenses, userName = 'Guest') => {
+    if (!expenses || expenses.length === 0) {
+        alert("No data to export.");
+        return;
+    }
+
+    const csvContent = generateCSV(expenses);
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement("a");
     const url = URL.createObjectURL(blob);

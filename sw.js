@@ -1,4 +1,4 @@
-const CACHE_NAME = 'expense-tracker-v1';
+const CACHE_NAME = 'financeflow-v2';
 const ASSETS = [
     './',
     './index.html',
@@ -7,7 +7,10 @@ const ASSETS = [
     './js/db.js',
     './js/ui.js',
     './js/csv.js',
-    './manifest.json'
+    './manifest.json',
+    './assets/icon-192.png',
+    'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap',
+    'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css'
 ];
 
 // Install Event
@@ -15,7 +18,8 @@ self.addEventListener('install', (event) => {
     event.waitUntil(
         caches.open(CACHE_NAME).then((cache) => {
             console.log('Caching assets');
-            return cache.addAll(ASSETS);
+            // Using a strategy to handle external CDN failures during install
+            return Promise.allSettled(ASSETS.map(url => cache.add(url)));
         })
     );
 });
@@ -33,9 +37,27 @@ self.addEventListener('activate', (event) => {
 
 // Fetch Event
 self.addEventListener('fetch', (event) => {
+    // Skip caching for Google Auth scripts to avoid interference
+    if (event.request.url.includes('accounts.google.com')) {
+        return;
+    }
+
     event.respondWith(
         caches.match(event.request).then((response) => {
-            return response || fetch(event.request);
+            return response || fetch(event.request).then(fetchRes => {
+                return caches.open(CACHE_NAME).then(cache => {
+                    // Only cache internal assets dynamically
+                    if (event.request.url.startsWith(self.location.origin)) {
+                        cache.put(event.request.url, fetchRes.clone());
+                    }
+                    return fetchRes;
+                });
+            });
+        }).catch(() => {
+            // Fallback for offline mode when asset is not in cache
+            if (event.request.url.includes('.html')) {
+                return caches.match('./index.html');
+            }
         })
     );
 });

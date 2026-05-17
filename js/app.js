@@ -8,6 +8,21 @@ const FALLBACK_CATEGORIES = [
     'Entertainment', 'Travel', 'Education', 'Investment', 'Others'
 ];
 
+// Helper to decode JWT without a library
+function decodeJwt(token) {
+    try {
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+        return JSON.parse(jsonPayload);
+    } catch (e) {
+        console.error("Failed to decode JWT", e);
+        return null;
+    }
+}
+
 const init = async () => {
     try {
         console.log("Starting App Initialization...");
@@ -34,11 +49,54 @@ const init = async () => {
         
         ui.populateCategories(categories);
 
-        // 3. Register Service Worker (optional for core logic)
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('./sw.js').catch(err => console.log("SW Register failed", err));
+        // 3. User & Session Management
+        const loadUser = () => {
+            const savedUser = localStorage.getItem('user');
+            if (savedUser) {
+                return JSON.parse(savedUser);
+            }
+            return { name: 'Guest', isGoogle: false };
+        };
+
+        let currentUser = loadUser();
+        ui.updateUserInfo(currentUser);
+
+        // Google Sign-In Listener
+        window.addEventListener('google-signed-in', (e) => {
+            const credential = e.detail;
+            const userData = decodeJwt(credential);
+            if (userData) {
+                currentUser = { ...userData, isGoogle: true };
+                localStorage.setItem('user', JSON.stringify(currentUser));
+                ui.updateUserInfo(currentUser);
+            }
+        });
+
+        // Local Name Edit
+        const editNameBtn = document.getElementById('edit-name-btn');
+        if (editNameBtn) {
+            editNameBtn.onclick = () => {
+                const newName = prompt("Enter your name:", currentUser.name);
+                if (newName && newName.trim()) {
+                    currentUser = { name: newName.trim(), isGoogle: false };
+                    localStorage.setItem('user', JSON.stringify(currentUser));
+                    ui.updateUserInfo(currentUser);
+                }
+            };
         }
 
+        // Logout
+        const logoutBtn = document.getElementById('logout-btn');
+        if (logoutBtn) {
+            logoutBtn.onclick = () => {
+                localStorage.removeItem('user');
+                currentUser = { name: 'Guest', isGoogle: false };
+                ui.updateUserInfo(currentUser);
+                window.location.reload();
+            };
+        }
+
+        // 4. Core Logic
         const refreshData = async () => {
             const expenses = await db.getAllExpenses();
             ui.renderExpenses(expenses, handleDelete);
@@ -46,13 +104,12 @@ const init = async () => {
         };
 
         const handleDelete = async (id) => {
-            if (confirm("Are you sure you want to delete this expense?")) {
+            if (confirm("Are you sure you want to delete this transaction?")) {
                 await db.deleteExpense(id);
                 await refreshData();
             }
         };
 
-        // Form Submission
         const form = document.getElementById('expense-form');
         if (form) {
             form.onsubmit = async (e) => {
@@ -66,7 +123,8 @@ const init = async () => {
                     amount: parseFloat(amountInput.value),
                     category: catSelect.value,
                     date: dateInput.value,
-                    description: descInput.value
+                    description: descInput.value,
+                    userId: currentUser.sub || 'local'
                 };
 
                 await db.addExpense(expense);
@@ -76,12 +134,11 @@ const init = async () => {
             };
         }
 
-        // Export/Import
         const exportBtn = document.getElementById('export-btn');
         if (exportBtn) {
             exportBtn.onclick = async () => {
                 const expenses = await db.getAllExpenses();
-                csv.exportToCSV(expenses);
+                csv.exportToCSV(expenses, currentUser.name);
             };
         }
 
@@ -93,10 +150,11 @@ const init = async () => {
                     try {
                         const expenses = await csv.parseCSV(file);
                         for (const expense of expenses) {
+                            expense.userId = currentUser.sub || 'local';
                             await db.addExpense(expense);
                         }
                         await refreshData();
-                        alert(`Successfully imported ${expenses.length} expenses.`);
+                        alert(`Successfully imported ${expenses.length} transactions.`);
                     } catch (error) {
                         alert("Failed to import CSV.");
                     }
@@ -105,21 +163,23 @@ const init = async () => {
             };
         }
 
-        // Reset Database Button (Emergency)
         const resetBtn = document.getElementById('reset-db-btn');
         if (resetBtn) {
             resetBtn.onclick = async () => {
-                if (confirm("This will delete ALL your saved expenses. Are you sure?")) {
+                if (confirm("This will delete ALL your saved data. Are you sure?")) {
                     await db.clearDatabase();
                     window.location.reload();
                 }
             };
         }
 
-        // Initial load
         const dateInput = document.getElementById('date');
         if (dateInput) dateInput.valueAsDate = new Date();
         await refreshData();
+
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./sw.js').catch(err => console.log("SW Register failed", err));
+        }
 
     } catch (error) {
         console.error("Critical Initialization error:", error);

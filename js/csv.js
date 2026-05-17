@@ -1,4 +1,4 @@
-export const exportToCSV = (expenses) => {
+export const exportToCSV = (expenses, userName = 'Guest') => {
     if (!expenses || expenses.length === 0) {
         alert("No data to export.");
         return;
@@ -17,8 +17,12 @@ export const exportToCSV = (expenses) => {
     const link = document.createElement("a");
     const url = URL.createObjectURL(blob);
     
+    // Sanitize user name for filename
+    const safeUserName = userName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+    const dateStr = new Date().toISOString().split('T')[0];
+    
     link.setAttribute("href", url);
-    link.setAttribute("download", `expenses_${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute("download", `${safeUserName}_expenses_${dateStr}.csv`);
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();
@@ -38,7 +42,9 @@ export const parseCSV = (file) => {
                 const line = lines[i].trim();
                 if (!line) continue;
                 
-                const [date, amount, category, description] = line.split(",").map(item => item.trim().replace(/^"|"$/g, ''));
+                // Simple CSV parsing (handles quotes)
+                const parts = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+                const [date, amount, category, description] = parts.map(item => item.trim().replace(/^"|"$/g, ''));
                 
                 if (date && amount && category) {
                     result.push({

@@ -1,5 +1,6 @@
 export const renderExpenses = (expenses, onDelete) => {
     const tbody = document.getElementById('expense-tbody');
+    if (!tbody) return;
     tbody.innerHTML = '';
 
     expenses.sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -7,11 +8,15 @@ export const renderExpenses = (expenses, onDelete) => {
     expenses.forEach(expense => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td>${expense.date}</td>
-            <td>₹${expense.amount.toFixed(2)}</td>
-            <td>${expense.category}</td>
+            <td>${new Date(expense.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</td>
+            <td><span class="category-tag">${expense.category}</span></td>
             <td>${expense.description || '-'}</td>
-            <td><button class="btn-delete" data-id="${expense.id}">Delete</button></td>
+            <td class="text-right"><strong>₹${expense.amount.toFixed(2)}</strong></td>
+            <td class="text-center">
+                <button class="btn-delete" data-id="${expense.id}" title="Delete">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+            </td>
         `;
         tbody.appendChild(tr);
     });
@@ -36,12 +41,16 @@ export const updateSummary = (expenses) => {
 
     const total = expenses.reduce((sum, e) => sum + e.amount, 0);
 
-    document.getElementById('monthly-total').textContent = `₹${monthlyTotal.toFixed(2)}`;
-    document.getElementById('all-time-total').textContent = `₹${total.toFixed(2)}`;
+    const monthlyEl = document.getElementById('monthly-total');
+    const totalEl = document.getElementById('all-time-total');
+    
+    if (monthlyEl) monthlyEl.textContent = `₹${monthlyTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+    if (totalEl) totalEl.textContent = `₹${total.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
 };
 
 export const populateCategories = (categories) => {
     const select = document.getElementById('category');
+    if (!select) return;
     select.innerHTML = '';
     categories.forEach(cat => {
         const option = document.createElement('option');
@@ -49,4 +58,34 @@ export const populateCategories = (categories) => {
         option.textContent = cat.name;
         select.appendChild(option);
     });
+};
+
+export const updateUserInfo = (user) => {
+    const userProfile = document.getElementById('user-profile');
+    const authOptions = document.getElementById('auth-options');
+    const userNameEl = document.getElementById('user-name');
+    const userAvatarEl = document.getElementById('user-avatar');
+    const welcomeMsgEl = document.getElementById('welcome-msg');
+    const logoutBtn = document.getElementById('logout-btn');
+    const editBtn = document.getElementById('edit-name-btn');
+
+    if (userProfile) userProfile.classList.remove('hidden');
+
+    if (user && user.isGoogle) {
+        if (authOptions) authOptions.classList.add('hidden');
+        if (logoutBtn) logoutBtn.classList.remove('hidden');
+        if (editBtn) editBtn.classList.add('hidden');
+        if (userNameEl) userNameEl.textContent = user.name;
+        if (userAvatarEl) userAvatarEl.src = user.picture;
+        if (welcomeMsgEl) welcomeMsgEl.textContent = `Hello, ${user.given_name || user.name}!`;
+    } else {
+        if (authOptions) authOptions.classList.remove('hidden');
+        if (logoutBtn) logoutBtn.classList.add('hidden');
+        if (editBtn) editBtn.classList.remove('hidden');
+        if (userAvatarEl) userAvatarEl.src = 'assets/icon-192.png';
+        
+        const localName = user ? user.name : 'Guest';
+        if (userNameEl) userNameEl.textContent = localName;
+        if (welcomeMsgEl) welcomeMsgEl.textContent = `Hello, ${localName}!`;
+    }
 };

@@ -3,77 +3,145 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Expense Tracker PWA</title>
+    <title>FinanceFlow | Smart Expense Tracker</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/style.css">
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#2c3e50">
+    <meta name="theme-color" content="#4f46e5">
     <link rel="apple-touch-icon" href="assets/icon-192.png">
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body>
-    <header>
-        <h1>Expense Tracker</h1>
-        <div class="summary-cards">
-            <div class="card">
-                <h3>This Month</h3>
-                <p id="monthly-total">₹0.00</p>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <i class="fas fa-wallet"></i>
+                <span>FinanceFlow</span>
             </div>
-            <div class="card">
-                <h3>Total</h3>
-                <p id="all-time-total">₹0.00</p>
+            <div id="user-profile" class="user-profile hidden">
+                <img id="user-avatar" src="assets/icon-192.png" alt="User Avatar">
+                <span id="user-name">Guest</span>
+                <button id="edit-name-btn" title="Edit Name"><i class="fas fa-edit"></i></button>
+                <button id="logout-btn" title="Logout" class="hidden"><i class="fas fa-sign-out-alt"></i></button>
+            </div>
+            <div id="auth-options">
+                <div id="g_id_onload"
+                     data-client_id="YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com"
+                     data-callback="handleCredentialResponse"
+                     data-auto_prompt="false">
+                </div>
+                <div class="g_id_signin"
+                     data-type="standard"
+                     data-size="medium"
+                     data-theme="outline"
+                     data-text="signin"
+                     data-shape="rectangular"
+                     data-logo_alignment="left">
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <header class="app-header">
+        <div class="header-content">
+            <h1 id="welcome-msg">Welcome Back!</h1>
+            <p>Keep track of your spending effortlessly.</p>
+        </div>
+        <div class="summary-grid">
+            <div class="stat-card">
+                <div class="stat-icon monthly">
+                    <i class="fas fa-calendar-alt"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>This Month</h3>
+                    <p id="monthly-total">₹0.00</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon total">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>Total Balance</h3>
+                    <p id="all-time-total">₹0.00</p>
+                </div>
             </div>
         </div>
     </header>
 
-    <main>
-        <section id="add-expense">
-            <h2>Add New Expense</h2>
-            <form id="expense-form">
-                <div class="form-group">
-                    <label for="amount">Amount (₹)</label>
-                    <input type="number" id="amount" required step="0.01" placeholder="e.g. 500">
+    <main class="container">
+        <div class="dashboard-grid">
+            <section id="add-expense" class="card">
+                <div class="card-header">
+                    <h2><i class="fas fa-plus-circle"></i> Add Transaction</h2>
                 </div>
-                <div class="form-group">
-                    <label for="category">Category</label>
-                    <select id="category" required>
-                        <option value="Food & Dining">Food & Dining</option>
-                        <option value="Transport">Transport</option>
-                        <option value="Rent">Rent</option>
-                        <option value="Bills & Utilities">Bills & Utilities</option>
-                        <option value="Groceries">Groceries</option>
-                        <option value="Shopping">Shopping</option>
-                        <option value="Others">Others</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="date">Date</label>
-                    <input type="date" id="date" required>
-                </div>
-                <div class="form-group">
-                    <label for="description">Description</label>
-                    <input type="text" id="description" placeholder="e.g. Lunch at office">
-                </div>
-                <button type="submit" class="btn-primary">Add Expense</button>
-            </form>
-        </section>
+                <form id="expense-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="amount">Amount (₹)</label>
+                            <div class="input-wrapper">
+                                <span class="input-prefix">₹</span>
+                                <input type="number" id="amount" required step="0.01" placeholder="0.00">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="category">Category</label>
+                            <select id="category" required>
+                                <!-- Categories populated via JS -->
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="date">Date</label>
+                            <input type="date" id="date" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="description">Description</label>
+                            <input type="text" id="description" placeholder="What was this for?">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-primary">
+                        <i class="fas fa-save"></i> Save Transaction
+                    </button>
+                </form>
+            </section>
 
-        <section id="actions">
-            <button id="export-btn" class="btn-secondary">Export CSV</button>
-            <label for="import-csv" class="btn-secondary">Import CSV</label>
-            <input type="file" id="import-csv" accept=".csv" style="display: none;">
-            <button id="reset-db-btn" class="btn-danger">Reset App</button>
-        </section>
+            <section id="actions" class="card action-card">
+                <div class="card-header">
+                    <h2><i class="fas fa-tools"></i> Tools</h2>
+                </div>
+                <div class="btn-group">
+                    <button id="export-btn" class="btn-secondary">
+                        <i class="fas fa-file-export"></i> Export CSV
+                    </button>
+                    <label for="import-csv" class="btn-secondary">
+                        <i class="fas fa-file-import"></i> Import CSV
+                    </label>
+                    <input type="file" id="import-csv" accept=".csv" style="display: none;">
+                    <button id="reset-db-btn" class="btn-danger">
+                        <i class="fas fa-trash-alt"></i> Reset All
+                    </button>
+                </div>
+            </section>
+        </div>
 
-        <section id="expense-list">
-            <h2>Recent Expenses</h2>
+        <section id="expense-list" class="card table-card">
+            <div class="card-header">
+                <h2><i class="fas fa-list"></i> Recent Transactions</h2>
+            </div>
             <div class="table-container">
                 <table>
                     <thead>
                         <tr>
                             <th>Date</th>
-                            <th>Amount</th>
                             <th>Category</th>
                             <th>Description</th>
-                            <th>Action</th>
+                            <th class="text-right">Amount</th>
+                            <th class="text-center">Action</th>
                         </tr>
                     </thead>
                     <tbody id="expense-tbody">
@@ -84,6 +152,17 @@
         </section>
     </main>
 
+    <footer class="app-footer">
+        <p>&copy; 2026 FinanceFlow. Secure & Private Expense Tracking.</p>
+    </footer>
+
     <script type="module" src="js/app.js"></script>
+    <script>
+        // Callback for Google Identity Services
+        function handleCredentialResponse(response) {
+            // This will be handled in app.js via event or global exposure
+            window.dispatchEvent(new CustomEvent('google-signed-in', { detail: response.credential }));
+        }
+    </script>
 </body>
 </html>

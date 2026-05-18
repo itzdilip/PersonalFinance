@@ -1,28 +1,31 @@
-# User Guide: Expense Tracker PWA
+# User Guide: Kubera-Finance Flow
 
 ## Getting Started
-The Expense Tracker is a simple tool to manage your daily expenses offline. Your data never leaves your device.
+**Kubera-Finance Flow** is a powerful yet simple tool to manage your personal finances. Your data is stored locally on your device, ensuring total privacy.
 
 ## Core Features
 
-### 1. Adding an Expense
-- Enter the **Amount** in Indian Rupees (₹).
-- Select a **Category** from the dropdown (e.g., Food, Transport, Rent).
-- Pick the **Date** of the transaction.
-- (Optional) Add a brief **Description**.
-- Click **Add Expense**.
+### 1. Dashboard
+- **Add Transaction**: Quickly record expenses with amount, category, date, and description.
+- **Quick Actions**: Access Export, Import, and Drive Save features.
+- **Summary Cards**: Instantly see your monthly spending and total balance.
 
-### 2. Viewing Summaries
-- **This Month**: Shows the total spent in the current calendar month.
-- **Total**: Shows the grand total of all expenses recorded.
+### 2. Analytics
+- **Category Distribution**: A visual breakdown of where your money goes.
+- **Spending Trends**: A bar chart showing your daily expenses over the last 7 days.
 
-### 3. Managing Expenses
-- The **Recent Expenses** table shows all your transactions sorted by date.
-- To remove an entry, click the **Delete** button in the Action column.
+### 3. Google Drive Sync
+- Configure your **Google Client ID** in the Settings tab to enable cloud features.
+- Once configured, you can sign in with Google and save your encrypted backups directly to your Drive.
 
-### 4. CSV Portability
-- **Export CSV**: Download all your data as a `.csv` file for backup or analysis in Excel/Google Sheets.
-- **Import CSV**: Upload a previously exported CSV to restore your data. *Ensure the format matches: Date, Amount, Category, Description.*
+### 4. Data Portability
+- **Export CSV**: Backup your data to a standard spreadsheet format.
+- **Import CSV**: Migrate data from other devices or restore from a previous backup.
+
+## Settings & Configuration
+- **User Identity**: Change your local display name.
+- **Google Integration**: Enter your OAuth Client ID to enable cloud sync.
+- **Reset**: Completely wipe all local data and start fresh.
 
 ## Offline Use
-Once visited, the app is cached. You can open it and record expenses even when you have no internet connection. Data will be saved to your local browser storage.
+The app is designed to work 100% offline. You can add, view, and analyze your transactions without any internet connection. The "Online/Offline" badge in the navbar will indicate your current status.

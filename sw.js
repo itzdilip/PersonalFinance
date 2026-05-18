@@ -1,4 +1,4 @@
-const CACHE_NAME = 'financeflow-v2';
+const CACHE_NAME = 'kubera-finance-v1';
 const ASSETS = [
     './',
     './index.html',

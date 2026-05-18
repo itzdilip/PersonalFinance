@@ -1,6 +1,6 @@
 {
-  "name": "Expense Tracker Offline",
-  "short_name": "Expenses",
+  "name": "Kubera-Finance Flow",
+  "short_name": "Kubera",
   "description": "A cross-platform offline expense tracker for personal finance management.",
   "start_url": "./index.html",
   "display": "standalone",

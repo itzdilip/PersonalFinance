@@ -1,6 +1,6 @@
-# Installation Guide: Expense Tracker PWA
+# Installation Guide: Kubera-Finance Flow
 
-As a Progressive Web App (PWA), the Expense Tracker can be installed on your device for a native-like experience.
+As a Progressive Web App (PWA), **Kubera-Finance Flow** can be installed on your device for a native-like experience.
 
 ## Windows & macOS (Chrome/Edge)
 1. Open the app URL in your browser.
@@ -11,7 +11,7 @@ As a Progressive Web App (PWA), the Expense Tracker can be installed on your dev
 ## Linux
 1. Open the app in Chrome or Brave.
 2. Click the three-dot menu (top-right).
-3. Select **Install Expense Tracker Offline...** or **Save and Share > Install page as app**.
+3. Select **Install Kubera-Finance Flow...** or **Save and Share > Install page as app**.
 
 ## Android (Chrome)
 1. Open the app URL.

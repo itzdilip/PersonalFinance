@@ -1,0 +1,4 @@
+# Prompt 001
+**Timestamp:** Initial Request
+
+Build a cross-platform offline expense tracker as an installable browser app using HTML, CSS, and JavaScript. Use IndexedDB for local expense data, a service worker for offline caching, and a manifest.json for installability. The app must support categories, monthly summaries, CSV import/export, and clean modular code. Create a professional folder structure with separate css, js, assets, docs, and prompts folders. Add README, installation guide, user guide, and technical design documentation. The app should run in modern browsers on Windows, macOS, and Linux. Populate common categories used in India.

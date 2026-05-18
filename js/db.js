@@ -1,5 +1,5 @@
 const DB_NAME = 'ExpenseTrackerDB';
-const DB_VERSION = 2; // Bumped version to force upgrade
+const DB_VERSION = 3; // Bumped version to force upgrade and fix categories issue
 
 export const openDB = () => {
     return new Promise((resolve, reject) => {
@@ -21,6 +21,7 @@ export const openDB = () => {
                 categoryStore.createIndex('name', 'name', { unique: true });
             }
         };
+
 
         request.onsuccess = () => resolve(request.result);
         request.onerror = (e) => {

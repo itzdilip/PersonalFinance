@@ -59,12 +59,15 @@ const init = async () => {
 
         let categories = [];
         try {
+            console.log("Fetching categories from DB...");
             categories = await db.getCategories();
+            console.log("Categories from DB:", categories);
         } catch (e) {
             console.error("Failed to fetch categories:", e);
         }
 
         if (!categories || categories.length === 0) {
+            console.log("Using fallback categories.");
             categories = FALLBACK_CATEGORIES.map(name => ({ name }));
         }
         ui.populateCategories(categories);

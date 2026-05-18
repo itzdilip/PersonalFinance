@@ -51,11 +51,20 @@ export const updateSummary = (expenses) => {
 export const populateCategories = (categories) => {
     const select = document.getElementById('category');
     if (!select) return;
+    
+    console.log("Populating categories:", categories);
     select.innerHTML = '';
+    
+    if (!Array.isArray(categories)) {
+        console.error("populateCategories received non-array:", categories);
+        return;
+    }
+
     categories.forEach(cat => {
+        const name = typeof cat === 'string' ? cat : (cat.name || 'Unknown');
         const option = document.createElement('option');
-        option.value = cat.name;
-        option.textContent = cat.name;
+        option.value = name;
+        option.textContent = name;
         select.appendChild(option);
     });
 };
@@ -64,83 +73,92 @@ let categoryChartInstance = null;
 let trendChartInstance = null;
 
 export const renderCharts = (expenses) => {
-    const categoryCtx = document.getElementById('categoryChart');
-    const trendCtx = document.getElementById('trendChart');
-
-    if (!categoryCtx || !trendCtx) return;
-
-    // 1. Category Distribution
-    const catData = {};
-    expenses.forEach(e => {
-        catData[e.category] = (catData[e.category] || 0) + e.amount;
-    });
-
-    const catLabels = Object.keys(catData);
-    const catValues = Object.values(catData);
-
-    if (categoryChartInstance) categoryChartInstance.destroy();
-    categoryChartInstance = new Chart(categoryCtx, {
-        type: 'doughnut',
-        data: {
-            labels: catLabels,
-            datasets: [{
-                data: catValues,
-                backgroundColor: [
-                    '#4f46e5', '#10b981', '#f59e0b', '#ef4444', '#06b6d4',
-                    '#8b5cf6', '#ec4899', '#64748b', '#f97316', '#0ea5e9'
-                ],
-                borderWidth: 0
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { position: 'bottom' }
-            }
+    try {
+        if (typeof Chart === 'undefined') {
+            console.warn("Chart.js not loaded. Skipping charts.");
+            return;
         }
-    });
 
-    // 2. Trend (Last 7 Days)
-    const last7Days = [...Array(7)].map((_, i) => {
-        const d = new Date();
-        d.setDate(d.getDate() - i);
-        return d.toISOString().split('T')[0];
-    }).reverse();
+        const categoryCtx = document.getElementById('categoryChart');
+        const trendCtx = document.getElementById('trendChart');
 
-    const trendData = last7Days.map(date => {
-        return expenses
-            .filter(e => e.date === date)
-            .reduce((sum, e) => sum + e.amount, 0);
-    });
+        if (!categoryCtx || !trendCtx) return;
 
-    const trendLabels = last7Days.map(date => {
-        return new Date(date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
-    });
+        // 1. Category Distribution
+        const catData = {};
+        expenses.forEach(e => {
+            catData[e.category] = (catData[e.category] || 0) + e.amount;
+        });
 
-    if (trendChartInstance) trendChartInstance.destroy();
-    trendChartInstance = new Chart(trendCtx, {
-        type: 'bar',
-        data: {
-            labels: trendLabels,
-            datasets: [{
-                label: 'Spending (₹)',
-                data: trendData,
-                backgroundColor: '#4f46e5',
-                borderRadius: 4
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                y: { beginAtZero: true }
+        const catLabels = Object.keys(catData);
+        const catValues = Object.values(catData);
+
+        if (categoryChartInstance) categoryChartInstance.destroy();
+        categoryChartInstance = new Chart(categoryCtx, {
+            type: 'doughnut',
+            data: {
+                labels: catLabels,
+                datasets: [{
+                    data: catValues,
+                    backgroundColor: [
+                        '#4f46e5', '#10b981', '#f59e0b', '#ef4444', '#06b6d4',
+                        '#8b5cf6', '#ec4899', '#64748b', '#f97316', '#0ea5e9'
+                    ],
+                    borderWidth: 0
+                }]
             },
-            plugins: {
-                legend: { display: false }
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom' }
+                }
             }
-        }
-    });
+        });
+
+        // 2. Trend (Last 7 Days)
+        const last7Days = [...Array(7)].map((_, i) => {
+            const d = new Date();
+            d.setDate(d.getDate() - i);
+            return d.toISOString().split('T')[0];
+        }).reverse();
+
+        const trendData = last7Days.map(date => {
+            return expenses
+                .filter(e => e.date === date)
+                .reduce((sum, e) => sum + e.amount, 0);
+        });
+
+        const trendLabels = last7Days.map(date => {
+            return new Date(date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
+        });
+
+        if (trendChartInstance) trendChartInstance.destroy();
+        trendChartInstance = new Chart(trendCtx, {
+            type: 'bar',
+            data: {
+                labels: trendLabels,
+                datasets: [{
+                    label: 'Spending (₹)',
+                    data: trendData,
+                    backgroundColor: '#4f46e5',
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true }
+                },
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+    } catch (err) {
+        console.error("Error rendering charts:", err);
+    }
 };
 
 export const updateUserInfo = (user) => {

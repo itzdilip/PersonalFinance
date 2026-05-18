@@ -101,3 +101,46 @@ export const updateUserInfo = (user) => {
         if (welcomeMsgEl) welcomeMsgEl.textContent = `Hello, ${localName}!`;
     }
 };
+
+export const updateConnectionStatus = (isOnline) => {
+    const statusEl = document.getElementById('connection-status');
+    const driveBtn = document.getElementById('drive-btn');
+    const offlineAuthMsg = document.getElementById('offline-auth-msg');
+    const googleSigninBtn = document.querySelector('.g_id_signin');
+    
+    if (statusEl) {
+        statusEl.className = `status-badge ${isOnline ? 'online' : 'offline'}`;
+        statusEl.innerHTML = isOnline 
+            ? '<i class="fas fa-wifi"></i> <span>Online</span>' 
+            : '<i class="fas fa-plane"></i> <span>Offline</span>';
+    }
+
+    if (driveBtn) {
+        if (!isOnline) {
+            driveBtn.title = "Offline: Sync disabled";
+            driveBtn.classList.add('btn-disabled');
+        } else {
+            driveBtn.title = "";
+            driveBtn.classList.remove('btn-disabled');
+        }
+    }
+
+    if (offlineAuthMsg && googleSigninBtn) {
+        if (!isOnline) {
+            offlineAuthMsg.classList.remove('hidden');
+            googleSigninBtn.classList.add('hidden');
+        } else {
+            offlineAuthMsg.classList.add('hidden');
+            googleSigninBtn.classList.remove('hidden');
+        }
+    }
+};
+
+export const toggleModal = (modalId, show) => {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        if (show) modal.classList.remove('hidden');
+        else modal.classList.add('hidden');
+    }
+};
+

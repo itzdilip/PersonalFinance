@@ -3,7 +3,7 @@ import * as ui from './ui.js';
 import * as csv from './csv.js';
 import * as drive from './drive.js';
 
-const CLIENT_ID = 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com';
+const CLIENT_ID = 'REPLACE_WITH_YOUR_CLIENT_ID.apps.googleusercontent.com';
 
 const FALLBACK_CATEGORIES = [
     'Food & Dining', 'Transport', 'Rent', 'Bills & Utilities', 
@@ -164,6 +164,11 @@ const init = async () => {
             };
         }
 
+        const guideOpenBtn = document.getElementById('guide-open-btn');
+        if (guideOpenBtn) {
+            guideOpenBtn.onclick = () => ui.toggleModal('guide-modal', true);
+        }
+
         const driveBtn = document.getElementById('drive-btn');
         if (driveBtn) {
             if (isClientPlaceholder) {
@@ -172,8 +177,13 @@ const init = async () => {
             }
 
             driveBtn.onclick = async () => {
+                if (!navigator.onLine) {
+                    alert("You are currently offline. Please connect to the internet to save to Google Drive.");
+                    return;
+                }
+
                 if (isClientPlaceholder) {
-                    alert("Google Drive backup requires configuration. Please update your Google Client ID in the code. See README.md for instructions.");
+                    ui.toggleModal('guide-modal', true);
                     return;
                 }
 
@@ -237,6 +247,19 @@ const init = async () => {
 
         const dateInput = document.getElementById('date');
         if (dateInput) dateInput.valueAsDate = new Date();
+        await refreshData();
+
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./sw.js').catch(err => console.log("SW Register failed", err));
+        }
+
+    } catch (error) {
+        console.error("Critical Initialization error:", error);
+    }
+};
+
+window.onload = init;
+ new Date();
         await refreshData();
 
         if ('serviceWorker' in navigator) {

@@ -22,6 +22,9 @@
                 <i class="fas fa-wallet"></i>
                 <span>FinanceFlow</span>
             </div>
+            <div id="connection-status" class="status-badge online">
+                <i class="fas fa-wifi"></i> <span>Online</span>
+            </div>
             <div id="user-profile" class="user-profile hidden">
                 <div id="user-avatar-container">
                     <img id="user-avatar" src="" alt="User Avatar" class="hidden">
@@ -44,6 +47,9 @@
                      data-text="signin"
                      data-shape="rectangular"
                      data-logo_alignment="left">
+                </div>
+                <div id="offline-auth-msg" class="hidden">
+                    <p class="text-muted"><i class="fas fa-info-circle"></i> Sign-in unavailable offline</p>
                 </div>
             </div>
         </div>
@@ -116,8 +122,9 @@
             </section>
 
             <section id="actions" class="card action-card">
-                <div class="card-header">
+                <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
                     <h2><i class="fas fa-tools"></i> Tools</h2>
+                    <button id="guide-open-btn" class="btn-icon" title="Setup Guide"><i class="fas fa-question-circle"></i></button>
                 </div>
                 <div class="btn-group">
                     <button id="export-btn" class="btn-secondary">
@@ -159,6 +166,36 @@
             </div>
         </section>
     </main>
+
+    <footer class="app-footer">
+        <p>&copy; 2026 FinanceFlow. Secure & Private Expense Tracking.</p>
+    </footer>
+
+    <script type="module" src="js/app.js"></script>
+    <script>
+        // Callback for Google Identity Services
+        function handleCredentialResponse(response) {
+            // This will be handled in app.js via event or global exposure
+            window.dispatchEvent(new CustomEvent('google-signed-in', { detail: response.credential }));
+        }
+    </script>
+</body>
+</html>
+ to <strong>APIs & Services > Library</strong> and enable <strong>Google Drive API</strong>.</li>
+                    <li>Go to <strong>OAuth consent screen</strong>, configure it, and add the <code>.../auth/drive.file</code> scope.</li>
+                    <li>Go to <strong>Credentials</strong>, create an <strong>OAuth 2.0 Client ID</strong> (Web application).</li>
+                    <li>Add <code>https://your-domain.com</code> to <strong>Authorized JavaScript origins</strong>.</li>
+                    <li>Copy your <strong>Client ID</strong> and replace <code>REPLACE_WITH_YOUR_CLIENT_ID</code> in <code>js/app.js</code> and <code>index.html</code>.</li>
+                </ol>
+                <div class="info-note">
+                    <i class="fas fa-info-circle"></i> Once configured, signing in with Google will allow you to save your data directly to your personal Drive.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-primary close-modal">Got it!</button>
+            </div>
+        </div>
+    </div>
 
     <footer class="app-footer">
         <p>&copy; 2026 FinanceFlow. Secure & Private Expense Tracking.</p>

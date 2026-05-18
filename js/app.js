@@ -3,15 +3,14 @@ import * as ui from './ui.js';
 import * as csv from './csv.js';
 import * as drive from './drive.js';
 
-const CLIENT_ID = 'REPLACE_WITH_YOUR_CLIENT_ID.apps.googleusercontent.com';
-
+// Default categories to ensure they load even if DB fails
 const FALLBACK_CATEGORIES = [
     'Food & Dining', 'Transport', 'Rent', 'Bills & Utilities', 
     'Groceries', 'Shopping', 'Health', 'Insurance', 
     'Entertainment', 'Travel', 'Education', 'Investment', 'Others'
 ];
 
-// Helper to decode JWT without a library
+// Helper to decode JWT
 function decodeJwt(token) {
     try {
         const base64Url = token.split('.')[1];
@@ -27,62 +26,81 @@ function decodeJwt(token) {
 }
 
 const init = async () => {
-    const isClientPlaceholder = CLIENT_ID.includes('REPLACE_WITH_YOUR_CLIENT_ID');
+    // 1. Configuration & Storage
+    const loadConfig = () => {
+        const saved = localStorage.getItem('ff_config');
+        return saved ? JSON.parse(saved) : { clientId: '' };
+    };
 
-    // Developer Warning for placeholder Client ID
-    if (isClientPlaceholder) {
-        console.error("GOOGLE CONFIGURATION ERROR: You are using a placeholder Client ID.");
-        console.info("Please follow the instructions in the Setup Guide (question mark icon) to set up your own Google Cloud Project.");
-    }
+    const saveConfig = (config) => {
+        localStorage.setItem('ff_config', JSON.stringify(config));
+    };
+
+    let appConfig = loadConfig();
+    const isClientConfigured = appConfig.clientId && !appConfig.clientId.includes('REPLACE_WITH');
+
+    // 2. User & Session Management
+    const loadUser = () => {
+        const savedUser = localStorage.getItem('user');
+        return savedUser ? JSON.parse(savedUser) : { name: 'Guest', isGoogle: false };
+    };
+
+    let currentUser = loadUser();
 
     try {
         console.log("Starting App Initialization...");
         
-        // 1. Try to init DB
+        // 3. Database & Categories
         try {
             await db.initDB();
         } catch (e) {
             console.warn("DB Initialization failed, using fallbacks:", e);
         }
 
-        // 2. Load Categories
         let categories = [];
         try {
             categories = await db.getCategories();
         } catch (e) {
-            console.error("Failed to fetch categories from DB:", e);
+            console.error("Failed to fetch categories:", e);
         }
 
-        if (categories.length === 0) {
-            console.log("No categories in DB, using hardcoded fallbacks.");
+        if (!categories || categories.length === 0) {
             categories = FALLBACK_CATEGORIES.map(name => ({ name }));
         }
-        
         ui.populateCategories(categories);
 
-        // 2.5. Init Google Drive API
-        if (navigator.onLine && !isClientPlaceholder) {
-            try {
-                await drive.initGapi();
-                await drive.initGis(CLIENT_ID);
-                console.log("Google Drive API Initialized");
-            } catch (e) {
-                console.warn("Google Drive API Init failed:", e);
-            }
+        // 4. Initial UI Setup
+        ui.updateUserInfo(currentUser);
+        ui.updateSettingsUI(currentUser, appConfig);
+        ui.updateConnectionStatus(navigator.onLine);
+
+        if (isClientConfigured) {
+            ui.injectGoogleAuth(appConfig.clientId);
         }
 
-        // 3. User & Session Management
-        const loadUser = () => {
-            const savedUser = localStorage.getItem('user');
-            if (savedUser) {
-                return JSON.parse(savedUser);
+        // 5. Google API Init (if configured)
+        const initGoogle = async () => {
+            if (navigator.onLine && isClientConfigured) {
+                try {
+                    await drive.initGapi();
+                    await drive.initGis(appConfig.clientId);
+                    console.log("Google Drive API Initialized");
+                    return true;
+                } catch (e) {
+                    console.warn("Google Drive API Init failed:", e);
+                }
             }
-            return { name: 'Guest', isGoogle: false };
+            return false;
         };
 
-        let currentUser = loadUser();
-        ui.updateUserInfo(currentUser);
-        ui.updateConnectionStatus(navigator.onLine);
+        let googleActive = await initGoogle();
+
+        // 6. Event Listeners
+        
+        // Tab Switching
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.onclick = () => ui.switchTab(btn.getAttribute('data-tab'));
+        });
 
         // Connection Listeners
         window.addEventListener('online', () => ui.updateConnectionStatus(true));
@@ -101,20 +119,41 @@ const init = async () => {
                 currentUser = { ...userData, isGoogle: true };
                 localStorage.setItem('user', JSON.stringify(currentUser));
                 ui.updateUserInfo(currentUser);
+                ui.updateSettingsUI(currentUser, appConfig);
             }
         });
 
-        // Local Name Edit
-        const editNameBtn = document.getElementById('edit-name-btn');
-        if (editNameBtn) {
-            editNameBtn.onclick = () => {
-                const newName = prompt("Enter your name:", currentUser.name);
-                if (newName && newName.trim()) {
-                    currentUser = { name: newName.trim(), isGoogle: false };
-                    localStorage.setItem('user', JSON.stringify(currentUser));
-                    ui.updateUserInfo(currentUser);
-                }
+        // Settings Actions
+        const saveConfigBtn = document.getElementById('save-config-btn');
+        if (saveConfigBtn) {
+            saveConfigBtn.onclick = () => {
+                const clientId = document.getElementById('config-client-id').value.trim();
+                appConfig.clientId = clientId;
+                saveConfig(appConfig);
+                alert("Configuration saved! The page will reload to apply changes.");
+                window.location.reload();
             };
+        }
+
+        const editNameAction = () => {
+            const newName = prompt("Enter your name:", currentUser.name);
+            if (newName && newName.trim()) {
+                currentUser = { name: newName.trim(), isGoogle: false };
+                localStorage.setItem('user', JSON.stringify(currentUser));
+                ui.updateUserInfo(currentUser);
+                ui.updateSettingsUI(currentUser, appConfig);
+            }
+        };
+
+        const editBtn = document.getElementById('edit-name-btn');
+        if (editBtn) editBtn.onclick = editNameAction;
+        
+        const settingsEditBtn = document.getElementById('settings-edit-name');
+        if (settingsEditBtn) settingsEditBtn.onclick = editNameAction;
+
+        const settingsGuideBtn = document.getElementById('settings-guide-btn');
+        if (settingsGuideBtn) {
+            settingsGuideBtn.onclick = () => ui.toggleModal('guide-modal', true);
         }
 
         // Logout
@@ -128,11 +167,12 @@ const init = async () => {
             };
         }
 
-        // 4. Core Logic
+        // 7. Core App Logic
         const refreshData = async () => {
             const expenses = await db.getAllExpenses();
             ui.renderExpenses(expenses, handleDelete);
             ui.updateSummary(expenses);
+            ui.renderCharts(expenses);
         };
 
         const handleDelete = async (id) => {
@@ -174,21 +214,24 @@ const init = async () => {
             };
         }
 
-        const guideOpenBtn = document.getElementById('guide-open-btn');
-        if (guideOpenBtn) {
-            guideOpenBtn.onclick = () => ui.toggleModal('guide-modal', true);
-        }
-
         const driveBtn = document.getElementById('drive-btn');
         if (driveBtn) {
             driveBtn.onclick = async () => {
                 if (!navigator.onLine) {
-                    alert("You are currently offline. Please connect to the internet to save to Google Drive.");
+                    alert("You are currently offline.");
                     return;
                 }
 
-                if (isClientPlaceholder) {
-                    ui.toggleModal('guide-modal', true);
+                if (!isClientConfigured) {
+                    if (confirm("Google Drive is not configured. Would you like to see the setup guide?")) {
+                        ui.switchTab('settings');
+                        ui.toggleModal('guide-modal', true);
+                    }
+                    return;
+                }
+
+                if (!googleActive) {
+                    alert("Google API failed to initialize. Please check your Client ID in Settings.");
                     return;
                 }
 
@@ -254,6 +297,7 @@ const init = async () => {
         if (dateInput) dateInput.valueAsDate = new Date();
         await refreshData();
 
+        // 8. Service Worker
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('./sw.js').catch(err => console.log("SW Register failed", err));
         }

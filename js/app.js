@@ -27,12 +27,12 @@ function decodeJwt(token) {
 }
 
 const init = async () => {
-    const isClientPlaceholder = CLIENT_ID.includes('YOUR_GOOGLE_CLIENT_ID');
+    const isClientPlaceholder = CLIENT_ID.includes('REPLACE_WITH_YOUR_CLIENT_ID');
 
     // Developer Warning for placeholder Client ID
     if (isClientPlaceholder) {
         console.error("GOOGLE CONFIGURATION ERROR: You are using a placeholder Client ID.");
-        console.info("Please follow the instructions in README.md to set up your own Google Cloud Project.");
+        console.info("Please follow the instructions in the Setup Guide (question mark icon) to set up your own Google Cloud Project.");
     }
 
     try {
@@ -61,7 +61,7 @@ const init = async () => {
         ui.populateCategories(categories);
 
         // 2.5. Init Google Drive API
-        if (navigator.onLine) {
+        if (navigator.onLine && !isClientPlaceholder) {
             try {
                 await drive.initGapi();
                 await drive.initGis(CLIENT_ID);
@@ -82,6 +82,16 @@ const init = async () => {
 
         let currentUser = loadUser();
         ui.updateUserInfo(currentUser);
+        ui.updateConnectionStatus(navigator.onLine);
+
+        // Connection Listeners
+        window.addEventListener('online', () => ui.updateConnectionStatus(true));
+        window.addEventListener('offline', () => ui.updateConnectionStatus(false));
+
+        // Modal Listeners
+        document.querySelectorAll('.close-modal').forEach(btn => {
+            btn.onclick = () => ui.toggleModal('guide-modal', false);
+        });
 
         // Google Sign-In Listener
         window.addEventListener('google-signed-in', (e) => {
@@ -171,11 +181,6 @@ const init = async () => {
 
         const driveBtn = document.getElementById('drive-btn');
         if (driveBtn) {
-            if (isClientPlaceholder) {
-                driveBtn.title = "Google Drive setup required (see README)";
-                // We don't disable it completely so user can see the alert if they click
-            }
-
             driveBtn.onclick = async () => {
                 if (!navigator.onLine) {
                     alert("You are currently offline. Please connect to the internet to save to Google Drive.");
@@ -247,19 +252,6 @@ const init = async () => {
 
         const dateInput = document.getElementById('date');
         if (dateInput) dateInput.valueAsDate = new Date();
-        await refreshData();
-
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('./sw.js').catch(err => console.log("SW Register failed", err));
-        }
-
-    } catch (error) {
-        console.error("Critical Initialization error:", error);
-    }
-};
-
-window.onload = init;
- new Date();
         await refreshData();
 
         if ('serviceWorker' in navigator) {
